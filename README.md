@@ -242,27 +242,7 @@ crosscenter[list_]:=With[{centerpt=toxyn[list][[1]]},Cross[vector2@{list[[1]],ce
 crosscentervec[list_]:=With[{centerpt=toxyn[list][[1]]},vector2@{centerpt,Cross[vector2@{list[[1]],centerpt},vector2@{list[[3]],centerpt}]}]
 
 
-divideTablePos[pts_]:=Module[{sectionnumbersz,sectionnumbers2z,section,len,snlen,c},
-len=Length@pts;
-sectionnumbersz=Sort@Flatten@{1,minimaz@pts,maximaz@pts,len};
-snlen=Length@sectionnumbersz;
-sectionnumbers2z=Table[If[n>1,{sectionnumbersz[[n]],sectionnumbersz[[n+1]]},{sectionnumbersz[[n]],sectionnumbersz[[n+1]]}],{n,1,Length@sectionnumbersz-1,1}];
-section[1]=With[{start=Last[sectionnumbers2z][[1]],end=sectionnumbers2z[[1]][[2]]},Table[1+Mod[n-1,len-1],{n,start,len+end-1,1}]];
-Do[section[n]=Range[#[[1]],#[[2]]]&@sectionnumbers2z[[n]],{n,2,snlen-1,1}];
-Table[section[n],{n,1,snlen-2,1}]]
 
-
-divideTableNos[pts_]:=Module[{sectionnumbersz,sectionnumbers2z,section,len,snlen,c},
-len=Length@pts;
-sectionnumbersz=Sort@Flatten@{1,minimaz@pts,maximaz@pts,len};
-snlen=Length@sectionnumbersz;
-sectionnumbers2z=Table[If[n>1,{sectionnumbersz[[n]],sectionnumbersz[[n+1]]},{sectionnumbersz[[n]],sectionnumbersz[[n+1]]}],{n,1,Length@sectionnumbersz-1,1}];
-section[1]=With[{start=Last[sectionnumbers2z][[1]],end=sectionnumbers2z[[1]][[2]]},Table[1+Mod[n-1,len-1],{n,start,len+end-1,1}]];
-Do[section[n]=Range[#[[1]],#[[2]]]&@sectionnumbers2z[[n]],{n,2,snlen-1,1}];
-Table[rtable[[#]]&/@section[n],{n,1,snlen-2,1}]]
-
-
-(* ::Section:: *)
 (*GCOMPLEX*)
 
 
@@ -497,11 +477,6 @@ minmaxpoints2[pts_]:=pts[[#]]&@Union@Flatten@{minimay[pts],maximay[pts],minimax[
 rint[r_]:=1+RandomInteger[r-1]
 
 
-flatlist:=Module[{netlist,flist,c,d,e},
-netlist[1]=With[{rnd1=rint[faceno]},{rnd1,list[[rnd1]],newlist=DeleteCases[list,rnd1,2]}];
-Do[netlist[n]=Quiet@With[{nlist=netlist[n-1][[3]],rnd2=rint[Length@netlist[n-1][[2]]],facelist=netlist[n-1][[2]]},{facelist[[rnd2]],newlist[[facelist[[rnd2]]]],newlist=DeleteCases[newlist,facelist[[rnd2]],2]}],{n,2,faceno,1}];
-flist=Flatten@Table[If[IntegerQ[netlist[n][[1]]]==True,netlist[n][[1]],{}],{n,1,faceno,1}];If[Length@flist!=Length@Union@flist,Rest@flist,flist]]
-
 
 
 netlists[number_]:=Union@Sort@Table[With[{pts=flatlist},{Length@pts,pts}],{number}]
@@ -552,18 +527,7 @@ g=RotationTransform[{Last@e,{0,1,0}}][e]
 (*  needs: rtable, tanvectable*)
 
 
-maxradius[rtable_,tanvectable_]:=Module[{vectorxy,dottable1,possiblepts,minkpoints,sort1,mindis,mindislinenos,mindistance,mink,maxradpos,maxrad},
-Do[vectorxy[i][j]=vector2@{rtable[[i]],rtable[[j]]},{i,1,tablelength,1},{j,1,tablelength,1}];
-Do[dottable1[i]=N@Take[Sort[Table[{i,j,N@Abs[tanvectable[[i]].vectorxy[i][j]]},{j,1,tablelength,1}],#1[[3]]<#2[[3]]&],10],{i,1,tablelength,1}];
-possiblepts=Sort[Table[If[i==1,dottable1[i][[3]],dottable1[i][[3]]],{i,1,tablelength-1,1}],#1[[3]]<#2[[3]]&];
-minkpoints=Sort[Table[{i,toxyn[rtable[[i-1;;i+1]]][[2]]},{i,2,tablelength-1,1}],#1[[2]]<#2[[2]]&];
-sort1=Sort[Table[{possiblepts[[i]][[1;;2]],ed2@rtable[[possiblepts[[i]][[1;;2]]]]},{i,1,tablelength-1,1}],#1[[2]]<#2[[2]]&];
-mindis=Max@Table[ed2@rtable[[i;;i+1]],{i,1,tablelength-1,1}];
-mindislinenos=Catch[Table[If[sort1[[i]][[2]]>mindis,Throw[sort1[[i]][[1]]]],{i,1,tablelength-1,1}]];
-mindistance=ed2@rtable[[mindislinenos]]//N;
-mink=minkpoints[[1]][[2]];
-maxradpos=With[{a=mink,b=mindistance/2},If[a>b,{b,ToString["distance"]},{minkpoints[[1]][[2]],ToString["curvature"]}]];
-maxrad=maxradpos]
+
 
 
 (* ::Subsection:: *)
@@ -588,29 +552,7 @@ dtanLfunc[func_][t_,inc_]:=vector2@{func[t],func[t-inc]}
 R1func[func_][n_ (*secs*)]:=HouseholderMatrix[dtanLfunc[func][n secs,secs]];
 
 
-R2func[func_][n_]:=N@HouseholderMatrix[tanfunc[func][n secs]-R1func[func][n].tanfunc[func][(n-1)secs]]
 
-
-rmftablefunc[func_,inc_,sign_:1]:=Module[{rtable,tantable,scslengths,linelength,alpertable,tablelength,newnorm2,R1table,R2table,newline,newvec,vecdiff,vecdiffsigned,rmf2,rmftable,,o,p},
-rtable=Table[func[t],{t,0,2Pi,inc}];
-tantable=Table[tanfunc[func][t],{t,0,2Pi,inc}];
-tablelength=Length@rtable;
-scslengths=successiveLengths@rtable;
-     linelength=lineLength@rtable;
-     alpertable=With[{len=linelength},Table[N@scslengths[[n]]/len,{n,1,tablelength,1}]];
-R1table=Table[R1func[func][n],{n,1,tablelength,1}];
-R2table=Table[R2func[func][n],{n,1,tablelength,1}];
-newnorm2[0]=normfunc[func][0];
-Do[newnorm2[i]=R2table[[i]].R1table[[i]].newnorm2[i-1],{i,1,tablelength,1}];
-Do[newline[n]=rtable[[n]]+newnorm2[n-1],{n,1,tablelength,1}];
-Do[newvec[n]=vector2@{rtable[[n]],rtable[[n]]+newline[n]},{n,1,tablelength,1}];
-(* check sign on vecdiff *)
-vecdiff=VectorAngle[vector2@{rtable[[1]],newline[1]},vector2@{rtable[[tablelength]],newline[tablelength]}];
-vecdiffsigned=If[RotationTransform[vecdiff,tantable[[tablelength]],rtable[[tablelength]]][newline[tablelength]]==newline[1],sign vecdiff,-sign vecdiff];
-      Do[rmf2[n]=If[n==tablelength,rmf2[1],RotationTransform[alpertable[[n]]*vecdiffsigned,tantable[[n]],rtable[[n]]][newvec[n]]],{n,1,tablelength,1}];
-     rmftable=Chop@N@Table[rmf2[n],{n,1,tablelength,1}];
-{rmftable,tantable,rtable}
-]
 
 
 colorlist={Red,Yellow,Purple,Green,Blue,Pink,Orange};
@@ -632,101 +574,8 @@ myrmf[t_]:=Table[rmfint[xyz][t],{xyz,1,3,1}]]
 
 
 
-myalperfunc[func_]:=Hold[With[{linelength},Table[N@scslengths[[n]]/len,{n,1,tablelength,1}]];
-alperfunc=Interpolation[Partition[Riffle[ttable,alpertable],2]]]
 
 
-rotngontable[noside_,start_,init_,rad_][angle_]:=Module[{rtbl,rmf,tanv,alperdf,npts,one,ab,bb},
-rtbl=With[{a=RotateLeft[Most@rtable,start]},Append[a,a[[1]]]];
-rmf=With[{aa=RotateLeft[Most@rmftable,start]},Append[aa,aa[[1]]]];
-tanv=With[{aaa=RotateLeft[Most@tanvectable,start]},Append[aaa,aaa[[1]]]];
-alperdf=Prepend[RotateLeft[alperdiff,start],0];
-npts=Table[rtbl[[tableno]]+rad*Normalize@vector2@{rtbl[[tableno]],rmf[[tableno]]},{tableno,1,tablelength,1}];
-one=Table[Table[RotationTransform[t+init,tanv[[n]],rtbl[[n]]][npts[[n]]],{t,0,2Pi,2Pi/noside}],{n,1,tablelength,1}];
-ab=Table[Append[RotationTransform[angle*Total@alperdf[[1;;n]],tanv[[n]],rtbl[[n]]][one[[n]]],rtbl[[n]]],{n,1,tablelength,1}];ab
-]
-
-
-(* ::Subsection:: *)
-(*Puzzle Stuff*)
-
-
-minmaxpointsposTest[pts_]:=Module[{a,alen,b,c,d,e,f,g,h,i},
-a=minmaxpointspos@pts;
-alen=Length@a;
-b=pts[[#]]&/@a;
-c=ed2@{b[[#]],RotateRight[b][[#]]}&/@Range[Length@b];
-d=If[Length@a-20>=0,Length@a-20,2];
-e=Reverse@Sort@Flatten[Position[c,Sort[c][[#]]]&/@Range[d]];
-f[0]=a;
-Do[f[n]=Drop[f[n-1],{e[[n]]}],{n,d,1,-1}];f[d]
-]
-
-
-mmptslongPts[points_]:=Module[{pts,mpts,mptspar,mptslong,mptslong2,knotpts,startendk,startend,psecl,psecr,pseclong,alfl,alfr,lineLl,lineLr,alftable,newptl,newptr},
-pts=points;
-mpts=minmaxpointsposTest@pts;
-mptspar=Partition[mpts,5];
-knotpts=Partition[pts[[#]]&@mpts,5];
-startend=Table[{nn*101-100,nn*101},{nn,1,4,1}];
-Do[mptslong[i]=Flatten@Join[{startend[[i]][[1]],mptspar[[i]],startend[[i]][[2]]}],{i,1,4,1}];
-Do[psecl[1][i]=Reverse@pts[[mptslong[i][[1]];;mptslong[i][[2]]]],{i,1,4,1}];
-Do[psecl[2][i]=pts[[mptslong[i][[2]];;mptslong[i][[3]]]],{i,1,4,1}];
-Do[psecr[1][i]=pts[[mptslong[i][[6]];;mptslong[i][[7]]]],{i,1,4,1}];
-Do[psecr[2][i]=Reverse@pts[[mptslong[i][[5]];;mptslong[i][[6]]]],{i,1,4,1}];
-Do[lineLl[i]=lineLength@psecl[2][i],{i,1,4,1}];
-Do[lineLr[i]=lineLength@psecr[2][i],{i,1,4,1}];
-Do[alfl[1][i]=byArcLength@psecl[1][i],{i,1,4,1}];
-Do[alfl[2][i]=byArcLength@psecl[2][i],{i,1,4,1}];
-Do[alfr[1][i]=byArcLength@psecr[1][i],{i,1,4,1}];
-Do[alfr[2][i]=byArcLength@psecr[2][i],{i,1,4,1}];
-Do[newptl[i]=Nearest[pts,alfl[1][i][lineLl[i]]],{i,1,4,1}];
-Do[newptr[i]=Nearest[pts,alfr[1][i][lineLr[i]]],{i,1,4,1}];
-mptslong2=Table[Partition[Flatten@Join[{pts[[startend[[i]][[1]]]],newptl[i],knotpts[[i]],newptr[i],pts[[startend[[i]][[2]]]]}],3],{i,1,4,1}];
-Flatten[mptslong2,1]
-]
-
-
-mmptslongptsPos[pts_]:=Partition[Union@Sort@Flatten@With[{list=mmptslongPts@pts},Position[pts,list[[#]]]&/@Range[Length@list]],9]
-
-
-mmptslongPts2[points_]:=Quiet@Module[{pts,mpts,mptspar,mptslong,mptslong2,knotpts,startendk,startend,psecl,psecr,pseclong,alfl,alfr,lineLl,lineLr,alftable,newptl,newptr,mmpts,a,b,c,d,e,f,g,h,i,j,slope1pts,mmlist},
-pts=points;
-mpts=minmaxpointsposTest@pts;
-mptspar=Partition[mpts,5];
-knotpts=Partition[pts[[#]]&@mpts,5];
-startend=Table[{nn*101-100,nn*101},{nn,1,4,1}];
-Do[mptslong[i]=Flatten@Join[{startend[[i]][[1]],mptspar[[i]],startend[[i]][[2]]}],{i,1,4,1}];
-Do[psecl[1][i]=Reverse@pts[[mptslong[i][[1]];;mptslong[i][[2]]]],{i,1,4,1}];
-Do[psecl[2][i]=pts[[mptslong[i][[2]];;mptslong[i][[3]]]],{i,1,4,1}];
-Do[psecr[1][i]=pts[[mptslong[i][[6]];;mptslong[i][[7]]]],{i,1,4,1}];
-Do[psecr[2][i]=Reverse@pts[[mptslong[i][[5]];;mptslong[i][[6]]]],{i,1,4,1}];
-Do[lineLl[i]=lineLength@psecl[2][i],{i,1,4,1}];
-Do[lineLr[i]=lineLength@psecr[2][i],{i,1,4,1}];
-Do[alfl[1][i]=byArcLength@psecl[1][i],{i,1,4,1}];
-Do[alfl[2][i]=byArcLength@psecl[2][i],{i,1,4,1}];
-Do[alfr[1][i]=byArcLength@psecr[1][i],{i,1,4,1}];
-Do[alfr[2][i]=byArcLength@psecr[2][i],{i,1,4,1}];
-Do[newptl[i]=Nearest[pts,alfl[1][i][lineLl[i]]],{i,1,4,1}];
-Do[newptr[i]=Nearest[pts,alfr[1][i][lineLr[i]]],{i,1,4,1}];
-mptslong2=Table[Partition[Flatten@Join[{pts[[startend[[i]][[1]]]],newptl[i],knotpts[[i]],newptr[i],pts[[startend[[i]][[2]]]]}],3],{i,1,4,1}];
-mpts=Flatten[mptslong2,1];
-mmlist=Partition[Union@Sort@Flatten@With[{list=mpts},Position[pts,list[[#]]]&/@Range[Length@list]],9];
-a=Differences[Partition[pts,101][[#]][[All,1;;2]]]&/@Range[4];
-b=Table[Abs@{Abs@#[[1]]-Abs@#[[2]]}&/@a[[n]],{n,1,4,1}];
-c=Table[Sort@Flatten[((n-1)*101)+Position[b[[n]],#]&/@Sort[b[[n]]][[1;;12]]],{n,1,4,1}];
-d=Map[Differences,c];
-e=Flatten[Position[d[[#]],1]]&/@Range[4];
-f=Complement[Range[12],e[[#]]]&/@Range[4];
-g=IntegerPart[.5Differences[f[[#]]]]&/@Range[4];
-h=With[{list1=Reverse@Rest@f[[#]],list2=Reverse@g[[#]]},Reverse@Table[list1[[n]]-list2[[n]],{n,1,Length@list1,1}]]&/@Range[4];
-i=With[{list1=c[[#]][[h[[#]]]],list2=mmlist[[#]][[{4,6}]]},Flatten@Table[If[list1[[n]]>list2[[1]]\[And]list1[[n]]<list2[[2]],list1[[n]],{}],{n,1,Length@list1,1}]]&/@Range[4];
-j=Flatten[{mmlist[[#]][[4]]+IntegerPart[.25Differences[mmlist[[#]][[{4,5}]]]],mmlist[[#]][[6]]-IntegerPart[.35Differences[mmlist[[#]][[{5,6}]]]]}]&/@Range[4];
-slope1pts=Flatten@With[{len=Length@i[[#]]},Which[len==2,i[[#]],len==0,j[[#]],len==1,If[i[[#]][[1]]<mmlist[[#]][[5]],{i[[#]],j[[#]][[2]]},{j[[#]][[1]],i[[#]]}]]]&/@Range[4];Flatten[pts[[Sort[Flatten[Append[mmlist[[#]],slope1pts[[#]]]]]]]&/@Range[4],1]
-]
-
-
-mmptslongptsPos2[pts_]:=Partition[Union@Sort@Flatten@With[{list=mmptslongPts2@pts},Position[pts,list[[#]]]&/@Range[Length@list]],11]
 
 
 
